@@ -1,1 +1,48 @@
-<h1>Test</h1>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XML 转 BIN</title>
+</head>
+<body>
+  <h1>XML 转 BIN</h1>
+
+  <input type="file" id="xmlFileInput" accept=".xml,text/xml,application/xml">
+  <button id="uploadButton">上传并转换</button>
+
+  <p id="status"></p>
+
+  <script src="app.js"></script>
+  <script>
+    const fileInput = document.getElementById('xmlFileInput');
+    const uploadButton = document.getElementById('uploadButton');
+    const status = document.getElementById('status');
+
+    uploadButton.addEventListener('click', function () {
+      const file = fileInput.files[0];
+      if (!file) {
+        status.textContent = '请先选择一个 XML 文件。';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        try {
+          const xmlString = decodeXmlBytes(new Uint8Array(event.target.result));
+          const binData = xmlToBin(xmlString);
+          const binFilename = file.name.replace(/\.xml$/i, '') + '.bin';
+          downloadBin(binData, binFilename);
+          status.textContent = '转换完成，已下载：' + binFilename + '（' + binData.length + ' 字节）';
+        } catch (error) {
+          status.textContent = '转换失败：' + error.message;
+        }
+      };
+      reader.onerror = function () {
+        status.textContent = '文件读取失败。';
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
+</body>
+</html>
