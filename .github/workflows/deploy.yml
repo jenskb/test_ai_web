@@ -1,0 +1,65 @@
+# 构建并部署到 GitHub Pages。
+# 推送 main 后自动执行：构建 ethercat-analyzer，与根目录的 XML→BIN 静态页
+# 一起组装为站点并发布到 https://jenskb.github.io/test_ai_web/。
+#
+# 前置条件：仓库 Settings → Pages → Source 需选择 "GitHub Actions"（见 README）。
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ethercat-analyzer/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ethercat-analyzer
+        run: npm ci
+
+      - name: Build analyzer
+        working-directory: ethercat-analyzer
+        run: npm run build
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp index.html app.js _site/
+          cp -r ethercat-analyzer/dist _site/ethercat-analyzer
+          touch _site/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

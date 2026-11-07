@@ -28,3 +28,23 @@ cd ethercat-analyzer
 npm run build
 npx serve dist -l 8080        # 或 python3 -m http.server 8080 -d dist
 ```
+
+## GitHub Pages 部署
+
+仓库通过 GitHub Actions 自动构建并部署到 GitHub Pages（推送 `main` 后自动发布，见 `.github/workflows/deploy.yml`）。
+
+| 页面 | 网址 |
+| --- | --- |
+| XML 转 BIN（原，保持不变） | https://jenskb.github.io/test_ai_web/ |
+| EtherCAT 抓包分析 | https://jenskb.github.io/test_ai_web/ethercat-analyzer/ |
+
+> 上表为部署后的目标地址：在合并到 `main`、完成下方 Pages 设置并触发一次部署后才会生效。
+> EtherCAT 抓包分析使用 Vite 相对 `base: './'` 构建，JS / CSS / Web Worker 在该子路径下正常加载，同时仍可通过本地静态服务离线使用。
+
+### 仓库所有者需要做的 Pages 设置（一次性）
+
+若尚未启用，请在 GitHub 仓库页面完成以下设置，否则 Actions 部署无法发布：
+
+1. 打开仓库 **Settings → Pages**。
+2. **Source** 选择 **GitHub Actions**（当前为 `Deploy from a branch` 的 legacy 模式，需切换）。
+3. 保存后，推送 `main`（或手动触发 `Deploy GitHub Pages` workflow）即会发布，地址见上表。
