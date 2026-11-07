@@ -108,6 +108,9 @@ describe('PCAPNG 解析', () => {
     // 两个 section 的接口 ID 都从 0 开始。
     expect(r.frames[0]!.interfaceId).toBe(0);
     expect(r.frames[1]!.interfaceId).toBe(0);
+    // 帧序号跨 section 全局递增，不重复。
+    expect(r.frames[0]!.seq).toBe(1);
+    expect(r.frames[1]!.seq).toBe(2);
   });
 
   it('多接口与不同时间分辨率（十进制 + 二进制）', () => {

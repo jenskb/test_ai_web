@@ -52,7 +52,6 @@ export function parseEthercat(payload: Uint8Array, payloadOffset: number): Ether
   }
 
   const datagrams: DatagramSummary[] = [];
-  const available = payload.length - 2; // 帧头后的可用字节（含可能的填充）
   const declared = headerLength; // 帧头声明的数据报区长度
 
   let off = 2; // 相对 payload 起始
@@ -107,7 +106,7 @@ export function parseEthercat(payload: Uint8Array, payloadOffset: number): Ether
     off += need;
     if (!moreFlag) {
       more = false;
-    } else if (off - 2 >= available) {
+    } else if (off - 2 >= declared) {
       anomalies.push('M 标志指示有后续数据报，但帧头声明长度已耗尽');
       more = false;
     }
@@ -163,8 +162,9 @@ function makeDatagram(
     cmdName: commandName(cmd),
     idx,
     address,
-    adp: (address >>> 16) & 0xffff,
-    ado: address & 0xffff,
+    // 地址字段按小端 4 字节：前 2 字节为 ADP（低 16 位），后 2 字节为 ADO（高 16 位）。
+    adp: address & 0xffff,
+    ado: (address >>> 16) & 0xffff,
     logicalAddress: address,
     length: dlen,
     circulating,

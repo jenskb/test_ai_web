@@ -204,9 +204,8 @@ export class PcapngParser {
       case BLOCK_TYPE_SHB: {
         this.sawSection = true;
         this.sectionCountValue++;
-        // 新 section：重新建立接口编号映射。
+        // 新 section：重新建立接口编号映射（帧序号保持全局递增）。
         this.interfaces = [];
-        this.frameSeq = 0;
         break;
       }
       case BLOCK_TYPE_IDB: {

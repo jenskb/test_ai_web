@@ -58,7 +58,7 @@ describe('EtherCAT 数据报解析', () => {
   });
 
   it('物理寻址命令显示 ADP/ADO', () => {
-    // APRD cmd=1，地址 0x12345678 → ADP 0x1234, ADO 0x5678。
+    // APRD cmd=1，地址 0x12345678 → 前 2 字节为 ADP（低 16 位 0x5678），后 2 字节为 ADO（高 16 位 0x1234）。
     const payload = Uint8Array.from([
       0x0c, 0x10, // 帧头 len=12 type=1
       0x01, 0x00, // APRD idx=0
@@ -71,8 +71,8 @@ describe('EtherCAT 数据报解析', () => {
     const d = ecat.datagrams[0]!;
     expect(d.cmdName).toBe('APRD');
     expect(d.isPhysical).toBe(true);
-    expect(d.adp).toBe(0x1234);
-    expect(d.ado).toBe(0x5678);
+    expect(d.adp).toBe(0x5678);
+    expect(d.ado).toBe(0x1234);
     expect(d.wkc).toBe(2);
   });
 
@@ -110,6 +110,18 @@ describe('EtherCAT 数据报解析', () => {
     ]);
     const { ecat } = parseEthercat(payload, 0);
     expect(ecat.error).toContain('后续');
+  });
+
+  it('M 标志 + 以太网填充：在帧头声明长度处停止，不把填充当数据报', () => {
+    // 帧头声明 len=12，末尾数据报 M=1，但之后有 12 字节填充。
+    const payload = Uint8Array.from([
+      0x0c, 0x10, // 帧头 len=12
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, // NOP, M=1
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // 填充
+    ]);
+    const { ecat } = parseEthercat(payload, 0);
+    expect(ecat.datagrams).toHaveLength(1);
+    expect(ecat.error).toContain('声明长度已耗尽');
   });
 
   it('非数据报类型不强行按数据报解析', () => {
