@@ -80,6 +80,14 @@ npx serve dist -l 8080        # 或 python3 -m http.server 8080 -d dist
 
 > 不要求双击 HTML 通过 `file://` 运行（Worker 与模块加载需要 HTTP 服务）。
 
+`vite.config.ts` 使用相对 `base: './'`：既保证部署到 GitHub Pages 子路径 `/test_ai_web/ethercat-analyzer/` 时 JS / CSS / Web Worker 正确加载，又不破坏上述本地静态服务离线使用。
+
+### 在线访问（GitHub Pages）
+
+仓库通过 GitHub Actions 构建并部署本工具到子路径（见仓库根目录 `.github/workflows/deploy.yml`）。部署后的目标地址（合并到 `main` 并启用 Pages 后生效）：
+
+- https://jenskb.github.io/test_ai_web/ethercat-analyzer/
+
 ### 与现有工具（XML → BIN）的入口
 
 本仓库包含两个相互独立的工具：
